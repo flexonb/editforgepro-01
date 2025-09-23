@@ -9,12 +9,42 @@ export const loadFFmpeg = async () => {
     const { FFmpeg } = await import("@ffmpeg/ffmpeg");
     const { toBlobURL } = await import("@ffmpeg/util");
 
-    const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist";
+    // Try local hosting first, then multiple CDNs to avoid outages/404s
+    const bases = [
+      "/ffmpeg", // self-hosted under public/ffmpeg if available
+      // Prefer latest to avoid missing versions on CDNs
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@latest/dist",
+      "https://unpkg.com/@ffmpeg/core@latest/dist",
+      // Specific versions as fallback
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist",
+      "https://fastly.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist",
+      "https://unpkg.com/@ffmpeg/core@0.12.10/dist",
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist",
+      "https://fastly.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist",
+      "https://unpkg.com/@ffmpeg/core@0.12.6/dist",
+      // GitHub mirror
+      "https://cdn.jsdelivr.net/gh/ffmpegwasm/core@v0.12.10/dist",
+    ];
+
+    const resolveURL = async (path: string, type: string) => {
+      let lastErr: unknown = null;
+      for (const base of bases) {
+        try {
+          const url = `${base}/${path}`;
+          return await toBlobURL(url, type);
+        } catch (e) {
+          lastErr = e;
+          // try next base
+        }
+      }
+      throw lastErr ?? new Error("Failed to load ffmpeg core from all sources");
+    };
+
     const ffmpeg = new FFmpeg();
     await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-      workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript"),
+      coreURL: await resolveURL("ffmpeg-core.js", "text/javascript"),
+      wasmURL: await resolveURL("ffmpeg-core.wasm", "application/wasm"),
+      workerURL: await resolveURL("ffmpeg-core.worker.js", "text/javascript"),
     });
     ffmpegInstance = ffmpeg;
     return ffmpeg;
