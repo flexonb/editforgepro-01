@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Upload, Play, Pause, Square, Download, Video, Scissors, Type, Volume2, SkipBack, SkipForward, RotateCw, Layers, Filter, Maximize, Crop, Zap, Settings } from 'lucide-react';
 import { useEditor } from '../../context/EditorContext';
-import { transcodeWebMToMP4, transcodeAudioWebMToMP3 } from '../../lib/ffmpeg';
 
 export function VideoEditor() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -375,6 +374,7 @@ export function VideoEditor() {
   const exportProcessedVideoMP4 = async () => {
     const webm = await recordProcessedWebM();
     if (!webm) return;
+    const { transcodeWebMToMP4 } = await import('../../lib/ffmpeg');
     const mp4 = await transcodeWebMToMP4(webm);
     const url = URL.createObjectURL(mp4);
     const a = document.createElement('a');
@@ -390,6 +390,7 @@ export function VideoEditor() {
   const exportAudioMP3 = async () => {
     const webm = await recordAudioWebM();
     if (!webm) return;
+    const { transcodeAudioWebMToMP3 } = await import('../../lib/ffmpeg');
     const mp3 = await transcodeAudioWebMToMP3(webm);
     const url = URL.createObjectURL(mp3);
     const a = document.createElement('a');
