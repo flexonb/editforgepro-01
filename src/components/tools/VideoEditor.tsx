@@ -214,7 +214,7 @@ export function VideoEditor() {
     const filterStr = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) hue-rotate(${hue}deg) blur(${blur}px) sepia(${sepia}%) grayscale(${grayscale}%) invert(${invert}%)`;
 
     // Prepare streams
-    const canvasStream = canvas.captureStream();
+    const canvasStream = canvas.captureStream(30); // ensure FPS for recording
     // Try to grab audio from the video element
     const vidStream = video.captureStream ? video.captureStream() : (video as any).mozCaptureStream?.();
     let mixedStream: MediaStream;
@@ -238,7 +238,10 @@ export function VideoEditor() {
       if ((window as any).MediaRecorder && MediaRecorder.isTypeSupported(m)) { mimeType = m; break; }
     }
 
-    const recorder = new MediaRecorder(mixedStream, mimeType ? { mimeType } : undefined);
+    const recorder = new MediaRecorder(
+      mixedStream,
+      mimeType ? { mimeType, videoBitsPerSecond: 6_000_000, audioBitsPerSecond: 192_000 } : undefined
+    );
     const chunks: BlobPart[] = [];
     recorder.ondataavailable = (e) => {
       if (e.data && e.data.size > 0) chunks.push(e.data);
@@ -251,20 +254,31 @@ export function VideoEditor() {
     const prevPaused = video.paused;
     const prevRate = video.playbackRate;
 
+    // Ensure metadata is loaded before seeking
+    if (video.readyState < 1) {
+      await new Promise<void>((resolve) => {
+        const onMeta = () => { video.removeEventListener('loadedmetadata', onMeta); resolve(); };
+        video.addEventListener('loadedmetadata', onMeta, { once: true });
+      });
+    }
+
     video.muted = true; // prevent echo during export
     video.playbackRate = playRate;
 
-    // Seek and play for the duration of the trim
-    video.currentTime = trimStart || 0;
+    // Seek to start point and wait
+    const startAt = trimStart || 0;
+    if (Math.abs(video.currentTime - startAt) > 0.01) {
+      await new Promise<void>((resolve) => {
+        const onSeek = () => { video.removeEventListener('seeked', onSeek); resolve(); };
+        video.addEventListener('seeked', onSeek, { once: true });
+        video.currentTime = startAt;
+      });
+    }
 
-    await new Promise<void>((resolve) => {
-      const onCanPlay = () => { video.removeEventListener('canplay', onCanPlay); resolve(); };
-      video.addEventListener('canplay', onCanPlay);
-    });
-
-    await video.play();
-
+    // Start recording, then play and draw
     recorder.start(100);
+
+    await video.play().catch(() => {});
 
     const drawFrame = () => {
       if (!ctx) return;
@@ -295,7 +309,7 @@ export function VideoEditor() {
 
       const endTime = trimEnd > 0 ? trimEnd : duration;
       if (video.currentTime >= endTime || video.ended) {
-        recorder.stop();
+        try { recorder.stop(); } catch {}
         video.pause();
         return;
       }
@@ -306,13 +320,13 @@ export function VideoEditor() {
 
     await new Promise<void>((resolve) => {
       recorder.onstop = () => resolve();
+      recorder.onerror = () => resolve();
     });
 
     // Restore video element state
     video.muted = prevMuted;
     video.playbackRate = prevRate;
     if (!prevPaused) {
-      // resume previous playing state if it was playing
       video.play().catch(() => {});
     }
 
@@ -321,7 +335,9 @@ export function VideoEditor() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `edited-${activeFile?.name?.replace(/\.[^/.]+$/, '') || 'video'}.webm`;
+    document.body.appendChild(a);
     a.click();
+    a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
@@ -344,30 +360,48 @@ export function VideoEditor() {
       if ((window as any).MediaRecorder && MediaRecorder.isTypeSupported(m)) { mimeType = m; break; }
     }
 
-    const recorder = new MediaRecorder(audioStream, mimeType ? { mimeType } : undefined);
+    const recorder = new MediaRecorder(
+      audioStream,
+      mimeType ? { mimeType, audioBitsPerSecond: 192_000 } : undefined
+    );
     const chunks: BlobPart[] = [];
     recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
 
     const wasPaused = video.paused;
     const prevMuted = video.muted;
 
+    // Ensure metadata before seeking
+    if (video.readyState < 1) {
+      await new Promise<void>((resolve) => {
+        const onMeta = () => { video.removeEventListener('loadedmetadata', onMeta); resolve(); };
+        video.addEventListener('loadedmetadata', onMeta, { once: true });
+      });
+    }
+
+    // Start from trimStart and wait for seek
+    const startAt = trimStart || 0;
+    if (Math.abs(video.currentTime - startAt) > 0.01) {
+      await new Promise<void>((resolve) => {
+        const onSeek = () => { video.removeEventListener('seeked', onSeek); resolve(); };
+        video.addEventListener('seeked', onSeek, { once: true });
+        video.currentTime = startAt;
+      });
+    }
+
     video.muted = true; // avoid echo
 
-    await video.play();
     recorder.start(100);
+    await video.play().catch(() => {});
 
     const endTime = trimEnd > 0 ? trimEnd : duration;
     const tick = () => {
       if (video.currentTime >= endTime || video.ended) {
-        recorder.stop();
+        try { recorder.stop(); } catch {}
         video.pause();
         return;
       }
       requestAnimationFrame(tick);
     };
-
-    // Start from trimStart
-    video.currentTime = trimStart || 0;
     requestAnimationFrame(tick);
 
     await new Promise<void>((resolve) => { recorder.onstop = () => resolve(); });
@@ -381,7 +415,9 @@ export function VideoEditor() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `audio-${activeFile?.name?.replace(/\.[^/.]+$/, '') || 'track'}.webm`;
+    document.body.appendChild(a);
     a.click();
+    a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
