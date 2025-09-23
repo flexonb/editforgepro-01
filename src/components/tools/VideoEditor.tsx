@@ -183,7 +183,9 @@ export function VideoEditor() {
     const link = document.createElement('a');
     link.download = `frame-${Date.now()}.png`;
     link.href = canvas.toDataURL();
+    document.body.appendChild(link);
     link.click();
+    link.remove();
   };
 
   // Helper: record processed video (WEBM) and return as Blob
@@ -372,41 +374,65 @@ export function VideoEditor() {
 
   // New: Export processed video as MP4 using ffmpeg.wasm
   const exportProcessedVideoMP4 = async () => {
-    const webm = await recordProcessedWebM();
-    if (!webm) return;
-    const { transcodeWebMToMP4 } = await import('../../lib/ffmpeg');
-    const mp4 = await transcodeWebMToMP4(webm);
-    const url = URL.createObjectURL(mp4);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `edited-${activeFile?.name?.replace(/\.[^/.]+$/, '') || 'video'}.mp4`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    try {
+      const webm = await recordProcessedWebM();
+      if (!webm) {
+        // Fallback: download original if processing failed (e.g., unsupported browser)
+        exportVideo();
+        return;
+      }
+      const { transcodeWebMToMP4 } = await import('../../lib/ffmpeg');
+      const mp4 = await transcodeWebMToMP4(webm);
+      const url = URL.createObjectURL(mp4);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `edited-${activeFile?.name?.replace(/\.[^/.]+$/, '') || 'video'}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      // If ffmpeg import/transcode fails, fallback to WEBM export
+      await exportProcessedVideo();
+    }
   };
 
   // New: Export audio-only as MP3 using ffmpeg.wasm
   const exportAudioMP3 = async () => {
-    const webm = await recordAudioWebM();
-    if (!webm) return;
-    const { transcodeAudioWebMToMP3 } = await import('../../lib/ffmpeg');
-    const mp3 = await transcodeAudioWebMToMP3(webm);
-    const url = URL.createObjectURL(mp3);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `audio-${activeFile?.name?.replace(/\.[^/.]+$/, '') || 'track'}.mp3`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    try {
+      const webm = await recordAudioWebM();
+      if (!webm) {
+        // Fallback: download original
+        exportVideo();
+        return;
+      }
+      const { transcodeAudioWebMToMP3 } = await import('../../lib/ffmpeg');
+      const mp3 = await transcodeAudioWebMToMP3(webm);
+      const url = URL.createObjectURL(mp3);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audio-${activeFile?.name?.replace(/\.[^/.]+$/, '') || 'track'}.mp3`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      // If ffmpeg import/transcode fails, fallback to WEBM audio export
+      await exportAudioOnly();
+    }
   };
 
   // New: processed video export using MediaRecorder (applies filters, crop, text, trim)
   const exportProcessedVideo = async () => {
+    if (typeof window === 'undefined') return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
+    if (!(window as any).MediaRecorder || !(video as any).captureStream) {
+      // Fallback when recording APIs are unavailable
+      exportVideo();
+      return;
+    }
 
     const vw = video.videoWidth;
     const vh = video.videoHeight;
@@ -561,9 +587,16 @@ export function VideoEditor() {
   const exportAudioOnly = async () => {
     const video = videoRef.current;
     if (!video) return;
+    if (!(window as any).MediaRecorder || !(video as any).captureStream) {
+      exportVideo();
+      return;
+    }
 
     const vStream = video.captureStream ? video.captureStream() : (video as any).mozCaptureStream?.();
-    if (!vStream || vStream.getAudioTracks().length === 0) return;
+    if (!vStream || vStream.getAudioTracks().length === 0) {
+      exportVideo();
+      return;
+    }
 
     const audioStream = new MediaStream([vStream.getAudioTracks()[0]]);
 
@@ -639,12 +672,12 @@ export function VideoEditor() {
 
   const exportVideo = () => {
     if (!activeFile) return;
-    
-    // Create a new video element with the same source for export
     const link = document.createElement('a');
     link.href = activeFile.data as string;
     link.download = `edited-${activeFile.name}`;
+    document.body.appendChild(link);
     link.click();
+    link.remove();
   };
 
   const extractAudio = () => {
@@ -1016,14 +1049,14 @@ export function VideoEditor() {
                     <div className="w-full bg-slate-300 rounded-full h-4 shadow-inner">
                       <div
                         className="bg-gradient-to-r from-purple-500 to-teal-500 h-4 rounded-full transition-all shadow-lg"
-                        style={{ width: `${(currentTime / duration) * 100}%` }}
+                        style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
                       />
                       {/* Trim indicators */}
                       <div
                         className="absolute top-0 h-4 bg-yellow-400 opacity-60 rounded-full"
                         style={{ 
-                          left: `${(trimStart / duration) * 100}%`,
-                          width: `${((trimEnd - trimStart) / duration) * 100}%`
+                          left: `${duration > 0 ? (trimStart / duration) * 100 : 0}%`,
+                          width: `${duration > 0 ? ((trimEnd - trimStart) / duration) * 100 : 0}%`
                         }}
                       />
                       {/* Markers */}
@@ -1031,7 +1064,7 @@ export function VideoEditor() {
                         <div
                           key={index}
                           className="absolute top-0 w-1 h-4 bg-red-500 shadow-lg"
-                          style={{ left: `${(marker / duration) * 100}%` }}
+                          style={{ left: `${duration > 0 ? (marker / duration) * 100 : 0}%` }}
                         />
                       ))}
                     </div>
