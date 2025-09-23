@@ -1,5 +1,5 @@
 import React from 'react';
-import { Crown, Sparkles, Download, FileText, ImageIcon, QrCode, Files, ArrowRight } from 'lucide-react';
+import { Crown, Sparkles, Download, FileText, ImageIcon, QrCode, Files, ArrowRight, Video, Music } from 'lucide-react';
 
 interface DashboardProps {
   onToolChange?: (tool: string) => void;
@@ -10,7 +10,9 @@ function Dashboard({ onToolChange }: DashboardProps) {
     { name: 'Edit Media', icon: ImageIcon, action: 'image-editor', gradient: 'from-purple-500 to-purple-600' },
     { name: 'Convert Files', icon: Download, action: 'converter', gradient: 'from-blue-500 to-blue-600' },
     { name: 'PDF Tools', icon: FileText, action: 'pdf-tools', gradient: 'from-green-500 to-emerald-600' },
-    { name: 'Generate QR', icon: QrCode, action: 'qr-generator', gradient: 'from-orange-500 to-amber-600' }
+    { name: 'Generate QR', icon: QrCode, action: 'qr-generator', gradient: 'from-orange-500 to-amber-600' },
+    { name: 'Edit Audio', icon: Music, action: 'audio-editor', gradient: 'from-teal-500 to-cyan-600' },
+    { name: 'Edit Video', icon: Video, action: 'video-editor', gradient: 'from-pink-500 to-rose-600' }
   ];
 
   const handleToolClick = (toolId: string) => {
