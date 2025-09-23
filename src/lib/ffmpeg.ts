@@ -1,48 +1,82 @@
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile } from '@ffmpeg/util';
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { toBlobURL } from "@ffmpeg/util";
 
-let _ffmpeg: FFmpeg | null = null;
-let _loading: Promise<FFmpeg> | null = null;
+let ffmpegInstance: FFmpeg | null = null;
+let loadingPromise: Promise<FFmpeg> | null = null;
 
-export const loadFFmpeg = async (): Promise<FFmpeg> => {
-  if (_ffmpeg) return _ffmpeg;
-  if (_loading) return _loading;
+export const loadFFmpeg = async () => {
+  if (ffmpegInstance) return ffmpegInstance;
+  if (loadingPromise) return loadingPromise;
 
+  const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist";
   const ffmpeg = new FFmpeg();
-  _loading = (async () => {
-    await ffmpeg.load();
-    _ffmpeg = ffmpeg;
+  loadingPromise = (async () => {
+    await ffmpeg.load({
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+      workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript"),
+    });
+    ffmpegInstance = ffmpeg;
     return ffmpeg;
   })();
 
-  return _loading;
+  return loadingPromise;
 };
 
-export const transcodeAudio = async (file: File, outputExt: 'mp3' | 'wav'): Promise<Blob> => {
+const blobToUint8Array = async (blob: Blob): Promise<Uint8Array> => {
+  const arrayBuffer = await blob.arrayBuffer();
+  return new Uint8Array(arrayBuffer);
+};
+
+export const transcodeWebMToMP4 = async (webm: Blob): Promise<Blob> => {
   const ffmpeg = await loadFFmpeg();
+  // filenames in ffmpeg FS
+  const inName = "input.webm";
+  const outName = "output.mp4";
 
-  const inputName = `input.${file.name.split('.').pop() || 'bin'}`;
-  const outputName = `output.${outputExt}`;
+  // write input
+  await ffmpeg.writeFile(inName, await blobToUint8Array(webm));
 
-  await ffmpeg.writeFile(inputName, await fetchFile(file));
+  // Transcode: copy audio if possible, encode video to H.264 baseline for broad support
+  // -movflags +faststart for progressive playback
+  await ffmpeg.exec([
+    "-i", inName,
+    "-c:v", "libx264",
+    "-preset", "veryfast",
+    "-crf", "23",
+    "-pix_fmt", "yuv420p",
+    "-c:a", "aac",
+    "-b:a", "192k",
+    "-movflags", "+faststart",
+    outName,
+  ]);
 
-  if (outputExt === 'mp3') {
-    // Try libmp3lame; fallback to default if unavailable
-    try {
-      await ffmpeg.exec(['-i', inputName, '-vn', '-c:a', 'libmp3lame', '-b:a', '192k', outputName]);
-    } catch {
-      await ffmpeg.exec(['-i', inputName, '-vn', outputName]);
-    }
-  } else if (outputExt === 'wav') {
-    await ffmpeg.exec(['-i', inputName, '-vn', '-acodec', 'pcm_s16le', '-ar', '44100', '-ac', '2', outputName]);
-  }
+  const data = await ffmpeg.readFile(outName);
+  // cleanup (best-effort)
+  try { await ffmpeg.deleteFile(inName); } catch {}
+  try { await ffmpeg.deleteFile(outName); } catch {}
 
-  const data = await ffmpeg.readFile(outputName);
-  // Clean up
-  try { await ffmpeg.deleteFile(inputName); } catch {}
-  try { await ffmpeg.deleteFile(outputName); } catch {}
+  return new Blob([data as Uint8Array], { type: "video/mp4" });
+};
 
-  const buf = (data as Uint8Array).buffer;
-  const mime = outputExt === 'mp3' ? 'audio/mpeg' : 'audio/wav';
-  return new Blob([buf], { type: mime });
+export const transcodeAudioWebMToMP3 = async (webm: Blob): Promise<Blob> => {
+  const ffmpeg = await loadFFmpeg();
+  const inName = "input_audio.webm";
+  const outName = "output.mp3";
+
+  await ffmpeg.writeFile(inName, await blobToUint8Array(webm));
+
+  await ffmpeg.exec([
+    "-i", inName,
+    "-vn",
+    "-c:a", "libmp3lame",
+    "-b:a", "192k",
+    outName,
+  ]);
+
+  const data = await ffmpeg.readFile(outName);
+  try { await ffmpeg.deleteFile(inName); } catch {}
+  try { await ffmpeg.deleteFile(outName); } catch {}
+
+  return new Blob([data as Uint8Array], { type: "audio/mpeg" });
 };

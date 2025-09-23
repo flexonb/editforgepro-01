@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Upload, Play, Pause, Square, Download, Video, Scissors, Type, Volume2, SkipBack, SkipForward, RotateCw, Layers, Filter, Maximize, Crop, Zap, Settings } from 'lucide-react';
 import { useEditor } from '../../context/EditorContext';
+import { transcodeWebMToMP4, transcodeAudioWebMToMP3 } from '../../lib/ffmpeg';
 
 export function VideoEditor() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -184,6 +185,220 @@ export function VideoEditor() {
     link.download = `frame-${Date.now()}.png`;
     link.href = canvas.toDataURL();
     link.click();
+  };
+
+  // Helper: record processed video (WEBM) and return as Blob
+  const recordProcessedWebM = async (): Promise<Blob | null> => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return null;
+
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+
+    const srcX = Math.round((cropSettings.x / 100) * vw);
+    const srcY = Math.round((cropSettings.y / 100) * vh);
+    const srcW = Math.round((cropSettings.width / 100) * vw);
+    const srcH = Math.round((cropSettings.height / 100) * vh);
+
+    const finalW = srcW > 0 ? srcW : vw;
+    const finalH = srcH > 0 ? srcH : vh;
+
+    canvas.width = finalW;
+    canvas.height = finalH;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    const filterStr = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) hue-rotate(${hue}deg) blur(${blur}px) sepia(${sepia}%) grayscale(${grayscale}%) invert(${invert}%)`;
+
+    const canvasStream = canvas.captureStream(30);
+    const vidStream = (video as any).captureStream ? (video as any).captureStream() : (video as any).mozCaptureStream?.();
+    let mixedStream: MediaStream;
+    if (vidStream && vidStream.getAudioTracks().length > 0) {
+      mixedStream = new MediaStream([
+        ...canvasStream.getVideoTracks(),
+        vidStream.getAudioTracks()[0],
+      ]);
+    } else {
+      mixedStream = canvasStream;
+    }
+
+    const mimeOptions = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm',
+    ];
+    let mimeType = '';
+    for (const m of mimeOptions) {
+      if ((window as any).MediaRecorder && MediaRecorder.isTypeSupported(m)) { mimeType = m; break; }
+    }
+
+    const recorder = new MediaRecorder(
+      mixedStream,
+      mimeType ? { mimeType, videoBitsPerSecond: 6_000_000, audioBitsPerSecond: 192_000 } : undefined
+    );
+    const chunks: BlobPart[] = [];
+    recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+
+    const prevMuted = video.muted;
+    const prevPaused = video.paused;
+    const prevRate = video.playbackRate;
+
+    if (video.readyState < 1) {
+      await new Promise<void>((resolve) => {
+        const onMeta = () => { video.removeEventListener('loadedmetadata', onMeta); resolve(); };
+        video.addEventListener('loadedmetadata', onMeta, { once: true });
+      });
+    }
+
+    video.muted = true;
+    video.playbackRate = playbackRate || 1;
+
+    const startAt = trimStart || 0;
+    if (Math.abs(video.currentTime - startAt) > 0.01) {
+      await new Promise<void>((resolve) => {
+        const onSeek = () => { video.removeEventListener('seeked', onSeek); resolve(); };
+        video.addEventListener('seeked', onSeek, { once: true });
+        video.currentTime = startAt;
+      });
+    }
+
+    recorder.start(100);
+    await video.play().catch(() => {});
+
+    const drawFrame = () => {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, finalW, finalH);
+      ctx.filter = filterStr;
+
+      const sX = srcW > 0 ? srcX : 0;
+      const sY = srcH > 0 ? srcY : 0;
+      const sW = srcW > 0 ? srcW : vw;
+      const sH = srcH > 0 ? srcH : vh;
+
+      ctx.drawImage(video, sX, sY, sW, sH, 0, 0, finalW, finalH);
+
+      if (textOverlay) {
+        ctx.save();
+        ctx.filter = 'none';
+        ctx.fillStyle = textColor;
+        ctx.strokeStyle = textStroke;
+        ctx.lineWidth = textStrokeWidth;
+        ctx.font = `${textSize}px Arial`;
+        ctx.textAlign = 'center';
+        const tx = (textPosition.x / 100) * finalW;
+        const ty = (textPosition.y / 100) * finalH;
+        if (textStrokeWidth > 0) ctx.strokeText(textOverlay, tx, ty);
+        ctx.fillText(textOverlay, tx, ty);
+        ctx.restore();
+      }
+
+      const endTime = trimEnd > 0 ? trimEnd : duration;
+      if (video.currentTime >= endTime || video.ended) {
+        try { recorder.stop(); } catch {}
+        video.pause();
+        return;
+      }
+      requestAnimationFrame(drawFrame);
+    };
+    requestAnimationFrame(drawFrame);
+
+    await new Promise<void>((resolve) => { recorder.onstop = () => resolve(); recorder.onerror = () => resolve(); });
+
+    video.muted = prevMuted;
+    video.playbackRate = prevRate;
+    if (!prevPaused) { video.play().catch(() => {}); }
+
+    return new Blob(chunks, { type: mimeType || 'video/webm' });
+  };
+
+  // Helper: record audio-only (WEBM/Opus) and return as Blob
+  const recordAudioWebM = async (): Promise<Blob | null> => {
+    const video = videoRef.current;
+    if (!video) return null;
+    const vStream = (video as any).captureStream ? (video as any).captureStream() : (video as any).mozCaptureStream?.();
+    if (!vStream || vStream.getAudioTracks().length === 0) return null;
+
+    const audioStream = new MediaStream([vStream.getAudioTracks()[0]]);
+    const mimeOptions = ['audio/webm;codecs=opus','audio/webm'];
+    let mimeType = '';
+    for (const m of mimeOptions) { if ((window as any).MediaRecorder && MediaRecorder.isTypeSupported(m)) { mimeType = m; break; } }
+
+    const recorder = new MediaRecorder(audioStream, mimeType ? { mimeType, audioBitsPerSecond: 192_000 } : undefined);
+    const chunks: BlobPart[] = [];
+    recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+
+    const wasPaused = video.paused;
+    const prevMuted = video.muted;
+
+    if (video.readyState < 1) {
+      await new Promise<void>((resolve) => {
+        const onMeta = () => { video.removeEventListener('loadedmetadata', onMeta); resolve(); };
+        video.addEventListener('loadedmetadata', onMeta, { once: true });
+      });
+    }
+
+    const startAt = trimStart || 0;
+    if (Math.abs(video.currentTime - startAt) > 0.01) {
+      await new Promise<void>((resolve) => {
+        const onSeek = () => { video.removeEventListener('seeked', onSeek); resolve(); };
+        video.addEventListener('seeked', onSeek, { once: true });
+        video.currentTime = startAt;
+      });
+    }
+
+    video.muted = true;
+    recorder.start(100);
+    await video.play().catch(() => {});
+
+    const endTime = trimEnd > 0 ? trimEnd : duration;
+    const tick = () => {
+      if (video.currentTime >= endTime || video.ended) {
+        try { recorder.stop(); } catch {}
+        video.pause();
+        return;
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+
+    await new Promise<void>((resolve) => { recorder.onstop = () => resolve(); });
+
+    video.muted = prevMuted;
+    if (!wasPaused) video.play().catch(() => {});
+
+    return new Blob(chunks, { type: mimeType || 'audio/webm' });
+  };
+
+  // New: Export processed video as MP4 using ffmpeg.wasm
+  const exportProcessedVideoMP4 = async () => {
+    const webm = await recordProcessedWebM();
+    if (!webm) return;
+    const mp4 = await transcodeWebMToMP4(webm);
+    const url = URL.createObjectURL(mp4);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `edited-${activeFile?.name?.replace(/\.[^/.]+$/, '') || 'video'}.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  // New: Export audio-only as MP3 using ffmpeg.wasm
+  const exportAudioMP3 = async () => {
+    const webm = await recordAudioWebM();
+    if (!webm) return;
+    const mp3 = await transcodeAudioWebMToMP3(webm);
+    const url = URL.createObjectURL(mp3);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `audio-${activeFile?.name?.replace(/\.[^/.]+$/, '') || 'track'}.mp3`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   // New: processed video export using MediaRecorder (applies filters, crop, text, trim)
@@ -696,10 +911,22 @@ export function VideoEditor() {
                   Export Video (WEBM)
                 </button>
                 <button
+                  onClick={exportProcessedVideoMP4}
+                  className="w-full py-2 bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 text-white rounded-lg text-sm font-medium transition-all"
+                >
+                  Export Video (MP4)
+                </button>
+                <button
                   onClick={exportAudioOnly}
                   className="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-lg text-sm font-medium transition-all"
                 >
                   Export Audio (WEBM)
+                </button>
+                <button
+                  onClick={exportAudioMP3}
+                  className="w-full py-2 bg-gradient-to-r from-rose-600 to-pink-700 hover:from-rose-700 hover:to-pink-800 text-white rounded-lg text-sm font-medium transition-all"
+                >
+                  Export Audio (MP3)
                 </button>
                 <p className="text-[10px] text-slate-500 mt-2">Note: Exports are processed in-browser using MediaRecorder.</p>
               </div>
