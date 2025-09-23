@@ -1,0 +1,6 @@
+# robots.txt for EditForge Pro
+User-agent: *
+Allow: /
+
+# Update this to your production domain
+Sitemap: https://your-domain.com/sitemap.xml
