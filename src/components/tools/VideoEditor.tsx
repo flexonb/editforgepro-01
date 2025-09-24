@@ -749,18 +749,17 @@ export function VideoEditor() {
 
       <div className="flex-1 flex">
         {/* Enhanced Controls Sidebar */}
-        <div className="w-80 p-6 border-r border-white/20 space-y-4 overflow-y-auto bg-gradient-to-b from-white/50 to-white/30">
+        <div className="w-80 p-6 border-r border-white/20 space-y-6 overflow-y-auto bg-gradient-to-b from-white/50 to-white/30">
           {/* Playback Controls */}
           <div className="bg-white/60 rounded-xl p-4 backdrop-blur-sm border border-white/30">
-            <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center">
+            <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
               <Play className="w-4 h-4 mr-2 text-purple-600" />
-              <span className="sr-only">Playback Controls</span>
+              Playback Controls
             </h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-2">Volume: {Math.round(volume * 100)}%</label>
                 <input
-                  aria-label="Volume"
-                  title={`Volume: ${Math.round(volume * 100)}%`}
                   type="range"
                   min="0"
                   max="1"
@@ -770,10 +769,10 @@ export function VideoEditor() {
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider"
                 />
               </div>
-              <div className="col-span-2">
+              
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-2">Speed: {playbackRate}x</label>
                 <select
-                  aria-label="Playback Speed"
-                  title={`Speed: ${playbackRate}x`}
                   value={playbackRate}
                   onChange={(e) => handlePlaybackRateChange(Number(e.target.value))}
                   className="w-full px-3 py-2 bg-white/80 border border-white/30 rounded-lg text-sm font-medium focus:ring-2 focus:ring-purple-500"
@@ -792,11 +791,11 @@ export function VideoEditor() {
 
           {/* Enhanced Video Effects */}
           <div className="bg-white/60 rounded-xl p-4 backdrop-blur-sm border border-white/30">
-            <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center">
+            <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
               <Filter className="w-4 h-4 mr-2 text-purple-600" />
-              <span className="sr-only">Visual Effects</span>
+              Visual Effects
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               {[
                 { label: 'Brightness', value: brightness, setter: setBrightness, min: 0, max: 200 },
                 { label: 'Contrast', value: contrast, setter: setContrast, min: 0, max: 200 },
@@ -807,10 +806,9 @@ export function VideoEditor() {
                 { label: 'Grayscale', value: grayscale, setter: setGrayscale, min: 0, max: 100 },
                 { label: 'Invert', value: invert, setter: setInvert, min: 0, max: 100 }
               ].map((effect) => (
-                <div key={effect.label} className="min-w-0">
-                  <label className="block text-[11px] font-medium text-slate-700 mb-1 truncate" title={`${effect.label}: ${effect.value}${effect.unit || '%'}`}>
-                    <span className="sr-only">{effect.label}: {effect.value}{effect.unit || '%'}</span>
-                    <Filter className="w-3.5 h-3.5 text-slate-600" />
+                <div key={effect.label}>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    {effect.label}: {effect.value}{effect.unit || '%'}
                   </label>
                   <input 
                     type="range" 
@@ -822,153 +820,150 @@ export function VideoEditor() {
                   />
                 </div>
               ))}
-              <div className="col-span-2">
-                <button
-                  onClick={resetEffects}
-                  className="w-full py-2 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-lg text-sm font-medium transition-all"
-                >
-                  Reset All Effects
-                </button>
-              </div>
+              <button
+                onClick={resetEffects}
+                className="w-full py-2 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-lg text-sm font-medium transition-all"
+              >
+                Reset All Effects
+              </button>
             </div>
           </div>
 
           {/* Transform Controls */}
           <div className="bg-white/60 rounded-xl p-4 backdrop-blur-sm border border-white/30">
-            <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center">
+            <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
               <Maximize className="w-4 h-4 mr-2 text-purple-600" />
-              <span className="sr-only">Transform</span>
+              Transform
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               <div>
-                <input aria-label="Zoom" title={`Zoom: ${zoom.toFixed(2)}x`} type="range" min="0.5" max="3" step="0.1" value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
+                <label className="block text-xs font-medium text-slate-700 mb-1">Zoom: {zoom.toFixed(2)}x</label>
+                <input type="range" min="0.5" max="3" step="0.1" value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
               </div>
               <div>
-                <input aria-label="Pan X" title={`Pan X: ${pan.x}px`} type="range" min="-200" max="200" value={pan.x} onChange={(e) => setPan(prev => ({ ...prev, x: Number(e.target.value) }))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
+                <label className="block text-xs font-medium text-slate-700 mb-1">Pan X: {pan.x}px</label>
+                <input type="range" min="-200" max="200" value={pan.x} onChange={(e) => setPan(prev => ({ ...prev, x: Number(e.target.value) }))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
               </div>
-              <div className="col-span-2">
-                <input aria-label="Pan Y" title={`Pan Y: ${pan.y}px`} type="range" min="-200" max="200" value={pan.y} onChange={(e) => setPan(prev => ({ ...prev, y: Number(e.target.value) }))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Pan Y: {pan.y}px</label>
+                <input type="range" min="-200" max="200" value={pan.y} onChange={(e) => setPan(prev => ({ ...prev, y: Number(e.target.value) }))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
               </div>
             </div>
           </div>
 
           {/* Enhanced Text Overlay */}
           <div className="bg-white/60 rounded-xl p-4 backdrop-blur-sm border border-white/30">
-            <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center">
+            <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
               <Type className="w-4 h-4 mr-2 text-purple-600" />
-              <span className="sr-only">Text Overlay</span>
+              Text Overlay
             </h3>
             <div className="space-y-3">
               <input
-                 type="text"
-                 value={textOverlay}
-                 onChange={(e) => setTextOverlay(e.target.value)}
-                 placeholder="Enter text..."
-                 className="w-full px-3 py-2 bg-white/80 border border-white/30 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
-               />
+                type="text"
+                value={textOverlay}
+                onChange={(e) => setTextOverlay(e.target.value)}
+                placeholder="Enter text..."
+                className="w-full px-3 py-2 bg-white/80 border border-white/30 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
+              />
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <input aria-label="Text Size" title={`Size: ${textSize}px`} type="range" min="12" max="72" value={textSize} onChange={(e) => setTextSize(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Size: {textSize}px</label>
+                  <input type="range" min="12" max="72" value={textSize} onChange={(e) => setTextSize(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
                 </div>
                 <div>
-                  <input aria-label="Stroke Width" title={`Stroke: ${textStrokeWidth}px`} type="range" min="0" max="10" value={textStrokeWidth} onChange={(e) => setTextStrokeWidth(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Stroke: {textStrokeWidth}px</label>
+                  <input type="range" min="0" max="10" value={textStrokeWidth} onChange={(e) => setTextStrokeWidth(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
                 </div>
-               </div>
-               <div className="grid grid-cols-2 gap-2">
+              </div>
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <input aria-label="Text Color" title="Text Color" type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-full h-8 rounded-lg border border-white/30" />
-                </div>
-                <div>
-                  <input aria-label="Stroke Color" title="Stroke Color" type="color" value={textStroke} onChange={(e) => setTextStroke(e.target.value)} className="w-full h-8 rounded-lg border border-white/30" />
-                </div>
-               </div>
-               <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <input aria-label="X Position" title={`X: ${textPosition.x}%`} type="range" min="0" max="100" value={textPosition.x} onChange={(e) => setTextPosition(prev => ({ ...prev, x: Number(e.target.value) }))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Text Color</label>
+                  <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-full h-10 rounded-lg border border-white/30" />
                 </div>
                 <div>
-                  <input aria-label="Y Position" title={`Y: ${textPosition.y}%`} type="range" min="0" max="100" value={textPosition.y} onChange={(e) => setTextPosition(prev => ({ ...prev, y: Number(e.target.value) }))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Stroke Color</label>
+                  <input type="color" value={textStroke} onChange={(e) => setTextStroke(e.target.value)} className="w-full h-10 rounded-lg border border-white/30" />
                 </div>
-               </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">X Position</label>
+                  <input type="range" min="0" max="100" value={textPosition.x} onChange={(e) => setTextPosition(prev => ({ ...prev, x: Number(e.target.value) }))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Y Position</label>
+                  <input type="range" min="0" max="100" value={textPosition.y} onChange={(e) => setTextPosition(prev => ({ ...prev, y: Number(e.target.value) }))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Timeline Markers */}
           <div className="bg-white/60 rounded-xl p-4 backdrop-blur-sm border border-white/30">
-             <h3 className="text-sm font-bold text-slate-800 mb-3">Timeline Markers</h3>
-             <div className="space-y-2">
-               <button
-                 onClick={addMarker}
-                 className="w-full py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg text-sm font-medium transition-all"
-               >
-                 Add Marker
-               </button>
-               <div className="max-h-20 overflow-y-auto">
-                 {markers.map((marker, index) => (
-                   <div key={index} className="flex items-center justify-between text-xs bg-white/60 p-2 rounded mb-1">
-                     <span className="font-medium">{formatTime(marker)}</span>
-                     <button
-                       onClick={() => removeMarker(marker)}
-                       className="text-red-600 hover:text-red-800 font-bold"
-                     >
-                       ×
-                     </button>
-                   </div>
-                 ))}
-               </div>
-             </div>
-           </div>
+            <h3 className="text-sm font-bold text-slate-800 mb-3">Timeline Markers</h3>
+            <div className="space-y-2">
+              <button
+                onClick={addMarker}
+                className="w-full py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg text-sm font-medium transition-all"
+              >
+                Add Marker
+              </button>
+              <div className="max-h-20 overflow-y-auto">
+                {markers.map((marker, index) => (
+                  <div key={index} className="flex items-center justify-between text-xs bg-white/60 p-2 rounded mb-1">
+                    <span className="font-medium">{formatTime(marker)}</span>
+                    <button
+                      onClick={() => removeMarker(marker)}
+                      className="text-red-600 hover:text-red-800 font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
           {/* Export Section */}
           {hasVideoLoaded && (
             <div className="bg-white/70 rounded-xl p-4 backdrop-blur-sm border border-white/30">
-              <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center">
+              <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
                 <Download className="w-4 h-4 mr-2 text-purple-600" />
-                <span className="sr-only">Export</span>
+                Export
               </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="space-y-2">
                 <button
                   onClick={exportFrame}
-                  title="Export Frame (PNG)"
-                  aria-label="Export Frame (PNG)"
-                  className="aspect-square flex items-center justify-center bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg transition-all"
+                  className="w-full py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg text-sm font-medium transition-all"
                 >
-                  <Layers className="w-6 h-6" />
+                  Export Frame (PNG)
                 </button>
                 <button
                   onClick={exportProcessedVideo}
-                  title="Export Video (WEBM)"
-                  aria-label="Export Video (WEBM)"
-                  className="aspect-square flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg transition-all"
+                  className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-sm font-medium transition-all"
                 >
-                  <Video className="w-6 h-6" />
+                  Export Video (WEBM)
                 </button>
                 <button
                   onClick={exportProcessedVideoMP4}
-                  title="Export Video (MP4)"
-                  aria-label="Export Video (MP4)"
-                  className="aspect-square flex items-center justify-center bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 text-white rounded-lg transition-all"
+                  className="w-full py-2 bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 text-white rounded-lg text-sm font-medium transition-all"
                 >
-                  <Video className="w-6 h-6" />
+                  Export Video (MP4)
                 </button>
                 <button
                   onClick={exportAudioOnly}
-                  title="Export Audio (WEBM)"
-                  aria-label="Export Audio (WEBM)"
-                  className="aspect-square flex items-center justify-center bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-lg transition-all"
+                  className="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-lg text-sm font-medium transition-all"
                 >
-                  <Volume2 className="w-6 h-6" />
+                  Export Audio (WEBM)
                 </button>
                 <button
                   onClick={exportAudioMP3}
-                  title="Export Audio (MP3)"
-                  aria-label="Export Audio (MP3)"
-                  className="aspect-square flex items-center justify-center bg-gradient-to-r from-rose-600 to-pink-700 hover:from-rose-700 hover:to-pink-800 text-white rounded-lg transition-all"
+                  className="w-full py-2 bg-gradient-to-r from-rose-600 to-pink-700 hover:from-rose-700 hover:to-pink-800 text-white rounded-lg text-sm font-medium transition-all"
                 >
-                  <Volume2 className="w-6 h-6" />
+                  Export Audio (MP3)
                 </button>
+                <p className="text-[10px] text-slate-500 mt-2">Note: Exports are processed in-browser using MediaRecorder.</p>
               </div>
-              <p className="text-[10px] text-slate-500 mt-2">Exports run in-browser.</p>
             </div>
           )}
         </div>

@@ -23,4 +23,3 @@ dist-ssr
 *.sln
 *.sw?
 # .env # Removed by Orchids to allow .env files
-.env

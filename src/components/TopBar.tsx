@@ -68,7 +68,7 @@ export function TopBar({ onSearch, onToggleSidebar, sidebarOpen, selectedCategor
       featureTitle: 'Everyday Toolkit',
       featureDesc: 'Fast converters and utilities designed for daily workflows.',
       items: [
-        { name: 'File Converter', id: 'file-converter', desc: 'Audio / video / image', Icon: Repeat },
+        { name: 'File Converter', id: 'converter', desc: 'Audio / video / image', Icon: Repeat },
         { name: 'QR Generator', id: 'qr-generator', desc: 'Create shareable codes', Icon: QrCode },
         { name: 'PDF Tools', id: 'pdf-tools', desc: 'Merge, split, compress', Icon: FileTextIcon },
         { name: 'Image Compressor', id: 'image-compressor', desc: 'Reduce file size', Icon: ImageDown },
@@ -85,7 +85,7 @@ export function TopBar({ onSearch, onToggleSidebar, sidebarOpen, selectedCategor
         { name: 'Password Generator', id: 'password-generator', desc: 'Secure strings', Icon: KeyRound },
         { name: 'JSON Formatter', id: 'json-formatter', desc: 'Pretty-print & validate', Icon: Braces },
         { name: 'Unit Converter', id: 'unit-converter', desc: 'Lengths, sizes, more', Icon: Ruler },
-        { name: 'Webcam Capture', id: 'webcam-capture', desc: 'Snap with camera', Icon: Camera },
+        { name: 'Screen Recorder', id: 'screen-recorder', desc: 'Record and share', Icon: Camera },
       ],
     },
   ];
