@@ -53,7 +53,7 @@ function Dashboard({ onToolChange }: DashboardProps) {
 
   return (
     <div className="h-full overflow-y-auto bg-gradient-to-br from-white via-purple-50/30 to-teal-50/30">
-      <div className="container-responsive space-y-4 md:space-y-6">
+      <div className="container-responsive space-y-2 md:space-y-3">
         {/* Hero Section - Responsive */}
         <div className="relative">
           {/* Background Effects */}
@@ -64,27 +64,27 @@ function Dashboard({ onToolChange }: DashboardProps) {
           </div>
           
           <div className="relative card-responsive">
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-3">
               
-              <div className="space-y-3 md:space-y-4">
-                <h1 className="heading-responsive-1 font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 bg-clip-text text-transparent leading-tight">
+              <div className="space-y-2 md:space-y-3">
+                <h1 className="heading-responsive-1 font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 bg-clip-text text-transparent leading-tight md:max-w-4xl mx-auto text-balance">
                   Your Complete File & Media Toolkit — Fast. Private. Free.
                 </h1>
               </div>
               
               {/* Quick Actions - Responsive Grid */}
-              <div className="grid-responsive-sm pt-2">
+              <div className="grid-responsive-sm pt-1">
                 {quickActions.map((action, index) => {
                   const Icon = action.icon;
                   return (
                     <button
                       key={index}
                       onClick={() => handleToolClick(action.action)}
-                      className={`btn-primary group flex items-center gap-2 ${action.gradient} hover:shadow-xl`}
+                      className={`btn-primary group flex items-center gap-2 ${action.gradient} hover:shadow-xl px-3 py-2 text-sm`}
                     >
-                      <Icon className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                      <Icon className="w-4 h-4 group-hover:rotate-12 transition-transform" />
                       <span className="font-medium">{action.name}</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                     </button>
                   );
                 })}
@@ -95,17 +95,17 @@ function Dashboard({ onToolChange }: DashboardProps) {
                 onDragOver={onDragOver}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
-                className={`mt-3 rounded-2xl border-2 border-dashed ${dragActive ? 'border-purple-400 bg-purple-50/50' : 'border-slate-200 bg-white/70'} p-4 text-slate-700 shadow-sm`}
+                className={`mt-2 rounded-2xl border-2 border-dashed ${dragActive ? 'border-purple-400 bg-purple-50/50' : 'border-slate-200 bg-white/70'} p-3 md:p-4 text-slate-700 shadow-sm`}
               >
-                <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col items-center gap-2">
                   <div className="touch-target rounded-2xl bg-gradient-to-r from-purple-500 to-teal-500 shadow-lg">
-                    <Files className="w-8 h-8 text-white" />
+                    <Files className="w-7 h-7 text-white" />
                   </div>
-                  <div className="text-responsive-xl font-bold text-slate-900">Drop files or click to browse</div>
+                  <div className="text-responsive-xl text-lg md:text-xl font-bold text-slate-900">Drop files or click to browse</div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="btn-primary bg-gradient-to-r from-purple-500 to-teal-500"
+                      className="btn-primary bg-gradient-to-r from-purple-500 to-teal-500 px-3 py-2 text-sm"
                     >
                       Browse Files
                     </button>
