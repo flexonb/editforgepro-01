@@ -332,7 +332,7 @@ export function AudioEditor() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200">
+    <div className="h-full grid grid-rows-[auto,1fr,auto] bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-200">
         <div className="flex items-center space-x-2">
@@ -351,9 +351,10 @@ export function AudioEditor() {
         </div>
       </div>
 
-      <div className="flex-1 flex">
-        {/* Enhanced Controls Sidebar */}
-        <div className="w-80 p-4 border-r border-slate-200 space-y-4 overflow-y-auto">
+      {/* Main area: Left | Waveform | Right */}
+      <div className="min-h-0 grid grid-cols-[14rem,1fr,14rem]">
+        {/* Left Sidebar (scrollable) */}
+        <div className="min-h-0 overflow-y-auto p-4 border-r border-slate-200 space-y-4">
           {/* Recording */}
           <div>
             <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
@@ -461,7 +462,7 @@ export function AudioEditor() {
             </div>
           </div>
 
-          {/* Audio Processing */}
+          {/* Processing */}
           <div>
             <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
               <Settings className="w-4 h-4 mr-2" />
@@ -482,7 +483,43 @@ export function AudioEditor() {
               </div>
             </div>
           </div>
+        </div>
 
+        {/* Center: Waveform / Preview */}
+        <div className="min-h-0 p-4 overflow-hidden">
+          {activeFile && activeFile.type.startsWith('audio/') ? (
+            <div className="bg-slate-900 rounded-lg p-4">
+              <canvas
+                ref={canvasRef}
+                width={800}
+                height={220}
+                className="w-full h-56 rounded cursor-pointer"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  const clickTime = (x / rect.width) * duration;
+                  seekAudio(clickTime);
+                }}
+              />
+            </div>
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full flex items-center justify-center mx-auto">
+                  <Music className="w-12 h-12 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">Professional Audio Editor</h3>
+                  <p className="text-slate-600 mb-4">Upload an audio file to start editing with advanced effects, EQ, noise reduction, and real-time visualization.</p>
+                  <button onClick={() => fileInputRef.current?.click()} className="px-6 py-3 bg-gradient-to-r from-purple-600 to-teal-600 text-white rounded-lg hover:from-purple-700 hover:to-teal-700 transition-all">Choose Audio File</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Sidebar (scrollable) */}
+        <div className="min-h-0 overflow-y-auto p-4 border-l border-slate-200 space-y-4">
           {/* Visualization */}
           <div>
             <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
@@ -511,12 +548,7 @@ export function AudioEditor() {
                 <span>Start: {formatTime(trimStart)}</span>
                 <span>End: {formatTime(trimEnd)}</span>
               </div>
-              <button
-                onClick={setTrimPoints}
-                className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm transition-colors"
-              >
-                Set Trim Points
-              </button>
+              <button onClick={setTrimPoints} className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm transition-colors">Set Trim Points</button>
             </div>
           </div>
 
@@ -529,40 +561,13 @@ export function AudioEditor() {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs text-slate-600 mb-1">Fade In: {fadeInDuration}s</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  step="0.5"
-                  value={fadeInDuration}
-                  onChange={(e) => setFadeInDuration(Number(e.target.value))}
-                  className="w-full"
-                />
-                <button
-                  onClick={() => applyFade('in')}
-                  className="w-full mt-1 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded text-xs transition-colors"
-                >
-                  Apply Fade In
-                </button>
+                <input type="range" min="0" max="10" step="0.5" value={fadeInDuration} onChange={(e) => setFadeInDuration(Number(e.target.value))} className="w-full" />
+                <button onClick={() => applyFade('in')} className="w-full mt-1 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded text-xs transition-colors">Apply Fade In</button>
               </div>
-              
               <div>
                 <label className="block text-xs text-slate-600 mb-1">Fade Out: {fadeOutDuration}s</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  step="0.5"
-                  value={fadeOutDuration}
-                  onChange={(e) => setFadeOutDuration(Number(e.target.value))}
-                  className="w-full"
-                />
-                <button
-                  onClick={() => applyFade('out')}
-                  className="w-full mt-1 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded text-xs transition-colors"
-                >
-                  Apply Fade Out
-                </button>
+                <input type="range" min="0" max="10" step="0.5" value={fadeOutDuration} onChange={(e) => setFadeOutDuration(Number(e.target.value))} className="w-full" />
+                <button onClick={() => applyFade('out')} className="w-full mt-1 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded text-xs transition-colors">Apply Fade Out</button>
               </div>
             </div>
           </div>
@@ -573,123 +578,33 @@ export function AudioEditor() {
               <Download className="w-4 h-4 mr-2" />
               Export
             </h3>
-            <button
-              onClick={exportAudio}
-              className="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded text-sm transition-colors"
-            >
-              Export Audio
-            </button>
+            <button onClick={exportAudio} className="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded text-sm transition-colors">Export Audio</button>
           </div>
         </div>
+      </div>
 
-        {/* Enhanced Audio Area */}
-        <div className="flex-1 p-6">
-          {activeFile && activeFile.type.startsWith('audio/') ? (
-            <div className="space-y-6">
-              {/* Enhanced Waveform Visualization */}
-              <div className="bg-slate-900 rounded-lg p-4">
-                <canvas
-                  ref={canvasRef}
-                  width={800}
-                  height={200}
-                  className="w-full h-48 rounded cursor-pointer"
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const clickTime = (x / rect.width) * duration;
-                    seekAudio(clickTime);
-                  }}
-                />
-              </div>
-
-              {/* Enhanced Audio Controls */}
-              <div className="bg-white/50 rounded-lg p-6 space-y-4">
-                <div className="flex items-center justify-center space-x-4">
-                  <button
-                    onClick={skipBackward}
-                    className="w-10 h-10 bg-slate-500 hover:bg-slate-600 text-white rounded-full flex items-center justify-center transition-colors"
-                  >
-                    <SkipBack className="w-4 h-4" />
-                  </button>
-                  
-                  <button
-                    onClick={togglePlayPause}
-                    className="w-12 h-12 bg-gradient-to-r from-purple-500 to-teal-500 hover:from-purple-600 hover:to-teal-600 text-white rounded-full flex items-center justify-center transition-all transform hover:scale-105"
-                  >
-                    {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
-                  </button>
-                  
-                  <button
-                    onClick={skipForward}
-                    className="w-10 h-10 bg-slate-500 hover:bg-slate-600 text-white rounded-full flex items-center justify-center transition-colors"
-                  >
-                    <SkipForward className="w-4 h-4" />
-                  </button>
-                  
-                  <button
-                    onClick={stopAudio}
-                    className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors"
-                  >
-                    <Square className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Enhanced Progress Bar */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm text-slate-600">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration)}</span>
-                  </div>
-                  <div className="relative">
-                    <div className="w-full bg-slate-200 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-purple-500 to-teal-500 h-2 rounded-full transition-all"
-                        style={{ width: `${(currentTime / duration) * 100}%` }}
-                      />
-                      {/* Trim indicators */}
-                      <div
-                        className="absolute top-0 h-2 bg-yellow-400 opacity-50 rounded-full"
-                        style={{ 
-                          left: `${(trimStart / duration) * 100}%`,
-                          width: `${((trimEnd - trimStart) / duration) * 100}%`
-                        }}
-                      />
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max={duration}
-                      value={currentTime}
-                      onChange={(e) => seekAudio(Number(e.target.value))}
-                      className="absolute inset-0 w-full h-2 opacity-0 cursor-pointer"
-                    />
-                  </div>
-                </div>
-              </div>
+      {/* Bottom Dock Controls */}
+      <div className="border-t border-slate-200 bg-white/70 backdrop-blur p-3">
+        <div className="max-w-5xl mx-auto space-y-3">
+          <div className="flex items-center justify-center gap-3">
+            <button onClick={skipBackward} className="w-10 h-10 bg-slate-500 hover:bg-slate-600 text-white rounded-full flex items-center justify-center"><SkipBack className="w-4 h-4" /></button>
+            <button onClick={togglePlayPause} className="w-12 h-12 bg-gradient-to-r from-purple-500 to-teal-500 hover:from-purple-600 hover:to-teal-600 text-white rounded-full flex items-center justify-center">{isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}</button>
+            <button onClick={skipForward} className="w-10 h-10 bg-slate-500 hover:bg-slate-600 text-white rounded-full flex items-center justify-center"><SkipForward className="w-4 h-4" /></button>
+            <button onClick={stopAudio} className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center"><Square className="w-4 h-4" /></button>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-xs text-slate-600">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
             </div>
-          ) : (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center space-y-4">
-                <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full flex items-center justify-center mx-auto">
-                  <Music className="w-12 h-12 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                    Professional Audio Editor
-                  </h3>
-                  <p className="text-slate-600 mb-4">
-                    Upload an audio file to start editing with advanced effects, EQ, noise reduction, and real-time visualization.
-                  </p>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-teal-600 text-white rounded-lg hover:from-purple-700 hover:to-teal-700 transition-all"
-                  >
-                    Choose Audio File
-                  </button>
-                </div>
+            <div className="relative">
+              <div className="w-full bg-slate-200 rounded-full h-2">
+                <div className="bg-gradient-to-r from-purple-500 to-teal-500 h-2 rounded-full transition-all" style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }} />
+                <div className="absolute top-0 h-2 bg-yellow-400/60 rounded-full" style={{ left: `${duration ? (trimStart / duration) * 100 : 0}%`, width: `${duration ? ((trimEnd - trimStart) / duration) * 100 : 0}%` }} />
               </div>
+              <input type="range" min="0" max={duration} value={currentTime} onChange={(e) => seekAudio(Number(e.target.value))} className="absolute inset-0 w-full h-2 opacity-0 cursor-pointer" />
             </div>
-          )}
+          </div>
         </div>
       </div>
 

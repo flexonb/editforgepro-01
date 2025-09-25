@@ -721,15 +721,15 @@ export function VideoEditor() {
   const hasVideoLoaded = activeFile && activeFile.type.startsWith('video/');
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-white/90 via-purple-50/80 to-teal-50/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl">
-      {/* Enhanced Header */}
-      <div className="flex items-center justify-between p-6 border-b border-white/20 bg-gradient-to-r from-purple-500/10 to-teal-500/10">
+    <div className="h-full grid grid-rows-[auto,1fr,auto] bg-gradient-to-br from-white/90 via-purple-50/80 to-teal-50/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 md:p-6 border-b border-white/20 bg-gradient-to-r from-purple-500/10 to-teal-500/10">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-xl">
             <Video className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-teal-600 bg-clip-text text-transparent">
+            <h2 className="text-lg md:text-xl font-bold bg-gradient-to-r from-purple-600 to-teal-600 bg-clip-text text-transparent">
               Professional Video Editor
             </h2>
             <p className="text-sm text-slate-600">Advanced video editing with real-time effects</p>
@@ -739,7 +739,7 @@ export function VideoEditor() {
         <div className="flex items-center space-x-3">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-teal-600 hover:from-purple-700 hover:to-teal-700 text-white rounded-xl transition-all transform hover:scale-105 shadow-lg"
+            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-teal-600 hover:from-purple-700 hover:to-teal-700 text-white rounded-xl transition-all shadow-lg"
           >
             <Upload className="w-5 h-5" />
             <span className="font-medium">Upload Video</span>
@@ -747,11 +747,12 @@ export function VideoEditor() {
         </div>
       </div>
 
-      <div className="flex-1 flex">
-        {/* Enhanced Controls Sidebar */}
-        <div className="w-80 p-6 border-r border-white/20 space-y-6 overflow-y-auto bg-gradient-to-b from-white/50 to-white/30">
+      {/* Main area: Left sidebar | Canvas | Right sidebar */}
+      <div className="min-h-0 grid grid-cols-[14rem,1fr,14rem] gap-0">
+        {/* Left Sidebar */}
+        <div className="min-h-0 overflow-y-auto p-4 md:p-5 border-r border-white/20 space-y-4 bg-gradient-to-b from-white/50 to-white/30">
           {/* Playback Controls */}
-          <div className="bg-white/60 rounded-xl p-4 backdrop-blur-sm border border-white/30">
+          <div className="bg-white/60 rounded-xl p-3 md:p-4 backdrop-blur-sm border border-white/30">
             <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
               <Play className="w-4 h-4 mr-2 text-purple-600" />
               Playback Controls
@@ -790,7 +791,7 @@ export function VideoEditor() {
           </div>
 
           {/* Enhanced Video Effects */}
-          <div className="bg-white/60 rounded-xl p-4 backdrop-blur-sm border border-white/30">
+          <div className="bg-white/60 rounded-xl p-3 md:p-4 backdrop-blur-sm border border-white/30">
             <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
               <Filter className="w-4 h-4 mr-2 text-purple-600" />
               Visual Effects
@@ -830,7 +831,7 @@ export function VideoEditor() {
           </div>
 
           {/* Transform Controls */}
-          <div className="bg-white/60 rounded-xl p-4 backdrop-blur-sm border border-white/30">
+          <div className="bg-white/60 rounded-xl p-3 md:p-4 backdrop-blur-sm border border-white/30">
             <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
               <Maximize className="w-4 h-4 mr-2 text-purple-600" />
               Transform
@@ -852,7 +853,7 @@ export function VideoEditor() {
           </div>
 
           {/* Enhanced Text Overlay */}
-          <div className="bg-white/60 rounded-xl p-4 backdrop-blur-sm border border-white/30">
+          <div className="bg-white/60 rounded-xl p-3 md:p-4 backdrop-blur-sm border border-white/30">
             <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
               <Type className="w-4 h-4 mr-2 text-purple-600" />
               Text Overlay
@@ -899,7 +900,7 @@ export function VideoEditor() {
           </div>
 
           {/* Timeline Markers */}
-          <div className="bg-white/60 rounded-xl p-4 backdrop-blur-sm border border-white/30">
+          <div className="bg-white/60 rounded-xl p-3 md:p-4 backdrop-blur-sm border border-white/30">
             <h3 className="text-sm font-bold text-slate-800 mb-3">Timeline Markers</h3>
             <div className="space-y-2">
               <button
@@ -908,7 +909,7 @@ export function VideoEditor() {
               >
                 Add Marker
               </button>
-              <div className="max-h-20 overflow-y-auto">
+              <div className="max-h-24 overflow-y-auto">
                 {markers.map((marker, index) => (
                   <div key={index} className="flex items-center justify-between text-xs bg-white/60 p-2 rounded mb-1">
                     <span className="font-medium">{formatTime(marker)}</span>
@@ -923,60 +924,16 @@ export function VideoEditor() {
               </div>
             </div>
           </div>
-
-          {/* Export Section */}
-          {hasVideoLoaded && (
-            <div className="bg-white/70 rounded-xl p-4 backdrop-blur-sm border border-white/30">
-              <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
-                <Download className="w-4 h-4 mr-2 text-purple-600" />
-                Export
-              </h3>
-              <div className="space-y-2">
-                <button
-                  onClick={exportFrame}
-                  className="w-full py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg text-sm font-medium transition-all"
-                >
-                  Export Frame (PNG)
-                </button>
-                <button
-                  onClick={exportProcessedVideo}
-                  className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-sm font-medium transition-all"
-                >
-                  Export Video (WEBM)
-                </button>
-                <button
-                  onClick={exportProcessedVideoMP4}
-                  className="w-full py-2 bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 text-white rounded-lg text-sm font-medium transition-all"
-                >
-                  Export Video (MP4)
-                </button>
-                <button
-                  onClick={exportAudioOnly}
-                  className="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-lg text-sm font-medium transition-all"
-                >
-                  Export Audio (WEBM)
-                </button>
-                <button
-                  onClick={exportAudioMP3}
-                  className="w-full py-2 bg-gradient-to-r from-rose-600 to-pink-700 hover:from-rose-700 hover:to-pink-800 text-white rounded-lg text-sm font-medium transition-all"
-                >
-                  Export Audio (MP3)
-                </button>
-                <p className="text-[10px] text-slate-500 mt-2">Note: Exports are processed in-browser using MediaRecorder.</p>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Enhanced Video Player */}
-        <div className="flex-1 p-6">
+        {/* Canvas / Preview (Center) */}
+        <div className="min-h-0 p-4 md:p-6 overflow-hidden">
           {hasVideoLoaded ? (
-            <div className="space-y-6">
-              {/* Video Display with Enhanced Styling */}
+            <div className="h-full flex flex-col">
               <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl overflow-hidden relative shadow-2xl border border-white/10">
                 <video
                   ref={videoRef}
-                  className="w-full h-64 md:h-96 object-contain"
+                  className="w-full aspect-video max-h-[60vh] object-contain"
                   onTimeUpdate={() => setCurrentTime(videoRef.current?.currentTime || 0)}
                   onLoadedMetadata={() => {
                     const vid = videoRef.current;
@@ -1006,79 +963,6 @@ export function VideoEditor() {
                   </div>
                 )}
               </div>
-
-              {/* Enhanced Video Controls */}
-              <div className="bg-gradient-to-r from-white/70 to-white/50 backdrop-blur-sm rounded-2xl p-6 space-y-4 border border-white/30 shadow-lg">
-                <div className="flex items-center justify-center space-x-4">
-                  <button
-                    onClick={skipBackward}
-                    className="w-12 h-12 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-lg"
-                  >
-                    <SkipBack className="w-5 h-5" />
-                  </button>
-                  
-                  <button
-                    onClick={togglePlayPause}
-                    className="w-16 h-16 bg-gradient-to-r from-purple-500 to-teal-500 hover:from-purple-600 hover:to-teal-600 text-white rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-xl"
-                  >
-                    {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
-                  </button>
-                  
-                  <button
-                    onClick={skipForward}
-                    className="w-12 h-12 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-lg"
-                  >
-                    <SkipForward className="w-5 h-5" />
-                  </button>
-                  
-                  <button
-                    onClick={stopVideo}
-                    className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-lg"
-                  >
-                    <Square className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Enhanced Progress Bar with Markers */}
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm font-medium text-slate-700">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration)}</span>
-                  </div>
-                  <div className="relative">
-                    <div className="w-full bg-slate-300 rounded-full h-4 shadow-inner">
-                      <div
-                        className="bg-gradient-to-r from-purple-500 to-teal-500 h-4 rounded-full transition-all shadow-lg"
-                        style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-                      />
-                      {/* Trim indicators */}
-                      <div
-                        className="absolute top-0 h-4 bg-yellow-400 opacity-60 rounded-full"
-                        style={{ 
-                          left: `${duration > 0 ? (trimStart / duration) * 100 : 0}%`,
-                          width: `${duration > 0 ? ((trimEnd - trimStart) / duration) * 100 : 0}%`
-                        }}
-                      />
-                      {/* Markers */}
-                      {markers.map((marker, index) => (
-                        <div
-                          key={index}
-                          className="absolute top-0 w-1 h-4 bg-red-500 shadow-lg"
-                          style={{ left: `${duration > 0 ? (marker / duration) * 100 : 0}%` }}
-                        />
-                      ))}
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max={duration}
-                      value={currentTime}
-                      onChange={(e) => seekVideo(Number(e.target.value))}
-                      className="absolute inset-0 w-full h-4 opacity-0 cursor-pointer"
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
           ) : (
             <div className="h-full flex items-center justify-center">
@@ -1104,17 +988,94 @@ export function VideoEditor() {
             </div>
           )}
         </div>
+
+        {/* Right Sidebar */}
+        <div className="min-h-0 overflow-y-auto p-4 md:p-5 border-l border-white/20 space-y-4 bg-gradient-to-b from-white/50 to-white/30">
+          {/* Timeline Markers */}
+          <div className="bg-white/60 rounded-xl p-3 md:p-4 backdrop-blur-sm border border-white/30">
+            <h3 className="text-sm font-bold text-slate-800 mb-3">Timeline Markers</h3>
+            <div className="space-y-2">
+              <button
+                onClick={addMarker}
+                className="w-full py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg text-sm font-medium transition-all"
+              >
+                Add Marker
+              </button>
+              <div className="max-h-24 overflow-y-auto">
+                {markers.map((marker, index) => (
+                  <div key={index} className="flex items-center justify-between text-xs bg-white/60 p-2 rounded mb-1">
+                    <span className="font-medium">{formatTime(marker)}</span>
+                    <button
+                      onClick={() => removeMarker(marker)}
+                      className="text-red-600 hover:text-red-800 font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Export Section */}
+          {hasVideoLoaded && (
+            <div className="bg-white/70 rounded-xl p-3 md:p-4 backdrop-blur-sm border border-white/30">
+              <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
+                <Download className="w-4 h-4 mr-2 text-purple-600" />
+                Export
+              </h3>
+              <div className="space-y-2">
+                <button onClick={exportFrame} className="w-full py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg text-sm font-medium transition-all">Export Frame (PNG)</button>
+                <button onClick={exportProcessedVideo} className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-sm font-medium transition-all">Export Video (WEBM)</button>
+                <button onClick={exportProcessedVideoMP4} className="w-full py-2 bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 text-white rounded-lg text-sm font-medium transition-all">Export Video (MP4)</button>
+                <button onClick={exportAudioOnly} className="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-lg text-sm font-medium transition-all">Export Audio (WEBM)</button>
+                <button onClick={exportAudioMP3} className="w-full py-2 bg-gradient-to-r from-rose-600 to-pink-700 hover:from-rose-700 hover:to-pink-800 text-white rounded-lg text-sm font-medium transition-all">Export Audio (MP3)</button>
+                <p className="text-[10px] text-slate-500 mt-2">Note: Exports are processed in-browser using MediaRecorder.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Dock Controls */}
+      <div className="border-t border-white/20 bg-white/60 backdrop-blur supports-[backdrop-filter]:bg-white/50 p-3 md:p-4">
+        <div className="max-w-5xl mx-auto space-y-3">
+          <div className="flex items-center justify-center gap-3">
+            <button onClick={skipBackward} className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-full flex items-center justify-center shadow-lg">
+              <SkipBack className="w-5 h-5" />
+            </button>
+            <button onClick={togglePlayPause} className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-purple-500 to-teal-500 hover:from-purple-600 hover:to-teal-600 text-white rounded-full flex items-center justify-center shadow-xl">
+              {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
+            </button>
+            <button onClick={skipForward} className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-full flex items-center justify-center shadow-lg">
+              <SkipForward className="w-5 h-5" />
+            </button>
+            <button onClick={stopVideo} className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg">
+              <Square className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs md:text-sm font-medium text-slate-700">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
+            <div className="relative">
+              <div className="w-full bg-slate-300 rounded-full h-3 md:h-4 shadow-inner">
+                <div className="bg-gradient-to-r from-purple-500 to-teal-500 h-full rounded-full transition-all shadow-lg" style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }} />
+                <div className="absolute top-0 h-full bg-yellow-400/70 rounded-full" style={{ left: `${duration > 0 ? (trimStart / duration) * 100 : 0}%`, width: `${duration > 0 ? ((trimEnd - trimStart) / duration) * 100 : 0}%` }} />
+                {markers.map((marker, index) => (
+                  <div key={index} className="absolute top-0 w-0.5 h-full bg-red-500 shadow" style={{ left: `${duration > 0 ? (marker / duration) * 100 : 0}%` }} />
+                ))}
+              </div>
+              <input type="range" min="0" max={duration} value={currentTime} onChange={(e) => seekVideo(Number(e.target.value))} className="absolute inset-0 w-full h-4 opacity-0 cursor-pointer" />
+            </div>
+          </div>
+        </div>
       </div>
 
       <canvas ref={canvasRef} className="hidden" />
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="video/*"
-        onChange={handleFileUpload}
-        className="hidden"
-      />
+      <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileUpload} className="hidden" />
     </div>
   );
 }

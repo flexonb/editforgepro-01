@@ -262,8 +262,8 @@ export function ImageEditor() {
   }, []);
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-white/90 via-purple-50/80 to-teal-50/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl">
-      {/* Enhanced Header */}
+    <div className="h-full grid grid-rows-[auto,1fr,auto] bg-gradient-to-br from-white/90 via-purple-50/80 to-teal-50/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl">
+      {/* Header */}
       <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/20 bg-gradient-to-r from-purple-500/10 to-teal-500/10">
         <div className="flex items-center space-x-2 sm:space-x-3">
           <div className="p-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-xl">
@@ -280,17 +280,16 @@ export function ImageEditor() {
         <div className="flex items-center space-x-2 sm:space-x-3">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-600 to-teal-600 hover:from-purple-700 hover:to-teal-700 text-white rounded-lg sm:rounded-xl transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base"
+            className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-600 to-teal-600 hover:from-purple-700 hover:to-teal-700 text-white rounded-lg sm:rounded-xl transition-all shadow-lg text-sm sm:text-base"
           >
             <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
             <span className="font-medium hidden sm:inline">Upload Image</span>
             <span className="font-medium sm:hidden">Upload</span>
           </button>
-          
           {activeFile && (
             <button
               onClick={downloadImage}
-              className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg sm:rounded-xl transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base"
+              className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg sm:rounded-xl transition-all shadow-lg text-sm sm:text-base"
             >
               <Download className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="font-medium hidden sm:inline">Export</span>
@@ -300,9 +299,10 @@ export function ImageEditor() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* Enhanced Controls Sidebar */}
-        <div className="w-full lg:w-80 p-3 sm:p-6 border-b lg:border-b-0 lg:border-r border-white/20 space-y-4 sm:space-y-6 overflow-y-auto bg-gradient-to-b from-white/50 to-white/30 max-h-64 lg:max-h-none">
+      {/* Main area: Left | Canvas | Right */}
+      <div className="min-h-0 grid grid-cols-[14rem,1fr,14rem]">
+        {/* Left Sidebar */}
+        <div className="min-h-0 overflow-y-auto p-3 sm:p-6 border-r border-white/20 space-y-4 sm:space-y-6 bg-gradient-to-b from-white/50 to-white/30">
           {/* Basic Adjustments */}
           <div className="bg-white/60 rounded-xl p-3 sm:p-4 backdrop-blur-sm border border-white/30">
             <h3 className="text-sm font-bold text-slate-800 mb-3 sm:mb-4 flex items-center">
@@ -411,66 +411,10 @@ export function ImageEditor() {
               </div>
             </div>
           </div>
-
-          {/* Quick Actions */}
-          <div className="bg-white/60 rounded-xl p-3 sm:p-4 backdrop-blur-sm border border-white/30">
-            <h3 className="text-sm font-bold text-slate-800 mb-3 sm:mb-4 flex items-center">
-              <Zap className="w-4 h-4 mr-2 text-purple-600" />
-              Quick Actions
-            </h3>
-            <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              <button 
-                onClick={undo}
-                disabled={historyIndex <= 0}
-                className="p-2 sm:p-3 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 disabled:from-slate-300 disabled:to-slate-400 text-white rounded-lg text-xs sm:text-sm font-medium transition-all transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed"
-              >
-                <Undo className="w-3 h-3 sm:w-4 sm:h-4 mx-auto mb-1" />
-                Undo
-              </button>
-              
-              <button 
-                onClick={redo}
-                disabled={historyIndex >= history.length - 1}
-                className="p-2 sm:p-3 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 disabled:from-slate-300 disabled:to-slate-400 text-white rounded-lg text-xs sm:text-sm font-medium transition-all transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed"
-              >
-                <Redo className="w-3 h-3 sm:w-4 sm:h-4 mx-auto mb-1" />
-                Redo
-              </button>
-              
-              <button 
-                onClick={autoFix}
-                className="p-2 sm:p-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-all transform hover:scale-105"
-              >
-                <Filter className="w-3 h-3 sm:w-4 sm:h-4 mx-auto mb-1" />
-                Auto Fix
-              </button>
-              
-              <button 
-                onClick={addLayer}
-                disabled={!activeFile}
-                className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm font-medium transition-all transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed ${
-                  hasLayer 
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white' 
-                    : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:from-slate-300 disabled:to-slate-400 text-white'
-                }`}
-              >
-                <Layers className="w-3 h-3 sm:w-4 sm:h-4 mx-auto mb-1" />
-                {hasLayer ? 'Layered' : 'Add Layer'}
-              </button>
-            </div>
-            
-            <button 
-              onClick={resetFilters}
-              className="w-full mt-2 sm:mt-3 p-2 sm:p-3 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-all transform hover:scale-105"
-            >
-              <Settings className="w-3 h-3 sm:w-4 sm:h-4 mx-auto mb-1" />
-              Reset All
-            </button>
-          </div>
         </div>
 
-        {/* Enhanced Canvas Area */}
-        <div className="flex-1 p-3 sm:p-6 overflow-auto">
+        {/* Canvas Center */}
+        <div className="min-h-0 p-3 sm:p-6 overflow-auto">
           {activeFile && activeFile.type.startsWith('image/') ? (
             <div className="w-full h-full flex items-center justify-center">
               <div className="relative">
@@ -481,7 +425,6 @@ export function ImageEditor() {
                     className="max-w-full max-h-full rounded-xl shadow-lg border border-white/50"
                     style={{ maxHeight: 'calc(100vh - 300px)' }}
                   />
-                  
                   {/* Status indicators */}
                   <div className="absolute top-2 right-2 flex space-x-2">
                     {hasLayer && (
@@ -516,6 +459,95 @@ export function ImageEditor() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Right Sidebar: Quick actions + Export */}
+        <div className="min-h-0 overflow-y-auto p-3 sm:p-6 border-l border-white/20 space-y-4 sm:space-y-6 bg-gradient-to-b from-white/50 to-white/30">
+          {/* Quick Actions */}
+          <div className="bg-white/60 rounded-xl p-3 sm:p-4 backdrop-blur-sm border border-white/30">
+            <h3 className="text-sm font-bold text-slate-800 mb-3 sm:mb-4 flex items-center">
+              <Zap className="w-4 h-4 mr-2 text-purple-600" />
+              Quick Actions
+            </h3>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <button 
+                onClick={undo}
+                disabled={historyIndex <= 0}
+                className="p-2 sm:p-3 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 disabled:from-slate-300 disabled:to-slate-400 text-white rounded-lg text-xs sm:text-sm font-medium transition-all"
+              >
+                <Undo className="w-3 h-3 sm:w-4 sm:h-4 mx-auto mb-1" />
+                Undo
+              </button>
+              
+              <button 
+                onClick={redo}
+                disabled={historyIndex >= history.length - 1}
+                className="p-2 sm:p-3 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 disabled:from-slate-300 disabled:to-slate-400 text-white rounded-lg text-xs sm:text-sm font-medium transition-all"
+              >
+                <Redo className="w-3 h-3 sm:w-4 sm:h-4 mx-auto mb-1" />
+                Redo
+              </button>
+              
+              <button 
+                onClick={autoFix}
+                className="p-2 sm:p-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-all"
+              >
+                <Filter className="w-3 h-3 sm:w-4 sm:h-4 mx-auto mb-1" />
+                Auto Fix
+              </button>
+              
+              <button 
+                onClick={addLayer}
+                disabled={!activeFile}
+                className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                  hasLayer 
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white' 
+                    : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:from-slate-300 disabled:to-slate-400 text-white'
+                }`}
+              >
+                <Layers className="w-3 h-3 sm:w-4 sm:h-4 mx-auto mb-1" />
+                {hasLayer ? 'Layered' : 'Add Layer'}
+              </button>
+            </div>
+            
+            <button 
+              onClick={resetFilters}
+              className="w-full mt-2 sm:mt-3 p-2 sm:p-3 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-all"
+            >
+              <Settings className="w-3 h-3 sm:w-4 sm:h-4 mx-auto mb-1" />
+              Reset All
+            </button>
+          </div>
+
+          {/* Export Panel */}
+          {activeFile && (
+            <div className="bg-white/70 rounded-xl p-3 sm:p-4 backdrop-blur-sm border border-white/30">
+              <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center">
+                <Download className="w-4 h-4 mr-2 text-purple-600" />
+                Export
+              </h3>
+              <button
+                onClick={downloadImage}
+                className="w-full py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-sm font-medium"
+              >
+                Export PNG
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Dock (compact) */}
+      <div className="border-t border-white/20 bg-white/60 backdrop-blur supports-[backdrop-filter]:bg-white/50 p-3">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-3 text-xs text-slate-700">
+          <span className="truncate">{activeFile ? activeFile.name : 'No file loaded'}</span>
+          <div className="flex items-center gap-2">
+            <button onClick={undo} disabled={historyIndex <= 0} className="px-3 py-1 rounded bg-slate-600 text-white disabled:bg-slate-400">Undo</button>
+            <button onClick={redo} disabled={historyIndex >= history.length - 1} className="px-3 py-1 rounded bg-slate-600 text-white disabled:bg-slate-400">Redo</button>
+            {activeFile && (
+              <button onClick={downloadImage} className="px-3 py-1 rounded bg-teal-600 text-white">Export</button>
+            )}
+          </div>
         </div>
       </div>
 
