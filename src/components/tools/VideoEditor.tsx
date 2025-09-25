@@ -723,7 +723,7 @@ export function VideoEditor() {
   return (
     <div className="h-full grid grid-rows-[auto,1fr,auto] bg-gradient-to-br from-white/90 via-purple-50/80 to-teal-50/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 md:p-6 border-b border-white/20 bg-gradient-to-r from-purple-500/10 to-teal-500/10">
+      <div className="flex items-center justify-between p-3 md:p-4 border-b border-white/20 bg-gradient-to-r from-purple-500/10 to-teal-500/10">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-xl">
             <Video className="w-6 h-6 text-white" />
@@ -748,7 +748,7 @@ export function VideoEditor() {
       </div>
 
       {/* Main area: Left sidebar | Canvas | Right sidebar */}
-      <div className="min-h-0 grid grid-cols-[14rem,1fr,14rem] gap-0">
+      <div className="min-h-0 grid grid-cols-[12rem,1fr,12rem] gap-0">
         {/* Left Sidebar */}
         <div className="min-h-0 overflow-y-auto p-4 md:p-5 border-r border-white/20 space-y-4 bg-gradient-to-b from-white/50 to-white/30">
           {/* Playback Controls */}
@@ -852,78 +852,7 @@ export function VideoEditor() {
             </div>
           </div>
 
-          {/* Enhanced Text Overlay */}
-          <div className="bg-white/60 rounded-xl p-3 md:p-4 backdrop-blur-sm border border-white/30">
-            <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center">
-              <Type className="w-4 h-4 mr-2 text-purple-600" />
-              Text Overlay
-            </h3>
-            <div className="space-y-3">
-              <input
-                type="text"
-                value={textOverlay}
-                onChange={(e) => setTextOverlay(e.target.value)}
-                placeholder="Enter text..."
-                className="w-full px-3 py-2 bg-white/80 border border-white/30 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Size: {textSize}px</label>
-                  <input type="range" min="12" max="72" value={textSize} onChange={(e) => setTextSize(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Stroke: {textStrokeWidth}px</label>
-                  <input type="range" min="0" max="10" value={textStrokeWidth} onChange={(e) => setTextStrokeWidth(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Text Color</label>
-                  <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-full h-10 rounded-lg border border-white/30" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Stroke Color</label>
-                  <input type="color" value={textStroke} onChange={(e) => setTextStroke(e.target.value)} className="w-full h-10 rounded-lg border border-white/30" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">X Position</label>
-                  <input type="range" min="0" max="100" value={textPosition.x} onChange={(e) => setTextPosition(prev => ({ ...prev, x: Number(e.target.value) }))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Y Position</label>
-                  <input type="range" min="0" max="100" value={textPosition.y} onChange={(e) => setTextPosition(prev => ({ ...prev, y: Number(e.target.value) }))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Timeline Markers */}
-          <div className="bg-white/60 rounded-xl p-3 md:p-4 backdrop-blur-sm border border-white/30">
-            <h3 className="text-sm font-bold text-slate-800 mb-3">Timeline Markers</h3>
-            <div className="space-y-2">
-              <button
-                onClick={addMarker}
-                className="w-full py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg text-sm font-medium transition-all"
-              >
-                Add Marker
-              </button>
-              <div className="max-h-24 overflow-y-auto">
-                {markers.map((marker, index) => (
-                  <div key={index} className="flex items-center justify-between text-xs bg-white/60 p-2 rounded mb-1">
-                    <span className="font-medium">{formatTime(marker)}</span>
-                    <button
-                      onClick={() => removeMarker(marker)}
-                      className="text-red-600 hover:text-red-800 font-bold"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          // removed duplicated Timeline Markers (kept on right sidebar)
         </div>
 
         {/* Canvas / Preview (Center) */}
@@ -933,7 +862,7 @@ export function VideoEditor() {
               <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl overflow-hidden relative shadow-2xl border border-white/10">
                 <video
                   ref={videoRef}
-                  className="w-full aspect-video max-h-[60vh] object-contain"
+                  className="w-full aspect-video max-h-[48vh] md:max-h-[56vh] object-contain"
                   onTimeUpdate={() => setCurrentTime(videoRef.current?.currentTime || 0)}
                   onLoadedMetadata={() => {
                     const vid = videoRef.current;
@@ -1038,19 +967,19 @@ export function VideoEditor() {
       </div>
 
       {/* Bottom Dock Controls */}
-      <div className="border-t border-white/20 bg-white/60 backdrop-blur supports-[backdrop-filter]:bg-white/50 p-3 md:p-4">
+      <div className="border-t border-white/20 bg-white/60 backdrop-blur supports-[backdrop-filter]:bg-white/50 p-2 md:p-3">
         <div className="max-w-5xl mx-auto space-y-3">
           <div className="flex items-center justify-center gap-3">
-            <button onClick={skipBackward} className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-full flex items-center justify-center shadow-lg">
+            <button onClick={skipBackward} className="w-9 h-9 md:w-11 md:h-11 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-full flex items-center justify-center shadow-lg">
               <SkipBack className="w-5 h-5" />
             </button>
-            <button onClick={togglePlayPause} className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-purple-500 to-teal-500 hover:from-purple-600 hover:to-teal-600 text-white rounded-full flex items-center justify-center shadow-xl">
+            <button onClick={togglePlayPause} className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-purple-500 to-teal-500 hover:from-purple-600 hover:to-teal-600 text-white rounded-full flex items-center justify-center shadow-xl">
               {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
             </button>
-            <button onClick={skipForward} className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-full flex items-center justify-center shadow-lg">
+            <button onClick={skipForward} className="w-9 h-9 md:w-11 md:h-11 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-full flex items-center justify-center shadow-lg">
               <SkipForward className="w-5 h-5" />
             </button>
-            <button onClick={stopVideo} className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg">
+            <button onClick={stopVideo} className="w-9 h-9 md:w-11 md:h-11 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg">
               <Square className="w-5 h-5" />
             </button>
           </div>
