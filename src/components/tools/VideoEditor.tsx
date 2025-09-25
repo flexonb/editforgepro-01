@@ -954,12 +954,9 @@ export function VideoEditor() {
                 Export
               </h3>
               <div className="space-y-2">
-                <button onClick={exportFrame} className="w-full py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg text-sm font-medium transition-all">Export Frame (PNG)</button>
+                {/* Only allow WebM export */}
                 <button onClick={exportProcessedVideo} className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-sm font-medium transition-all">Export Video (WEBM)</button>
-                <button onClick={exportProcessedVideoMP4} className="w-full py-2 bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 text-white rounded-lg text-sm font-medium transition-all">Export Video (MP4)</button>
-                <button onClick={exportAudioOnly} className="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-lg text-sm font-medium transition-all">Export Audio (WEBM)</button>
-                <button onClick={exportAudioMP3} className="w-full py-2 bg-gradient-to-r from-rose-600 to-pink-700 hover:from-rose-700 hover:to-pink-800 text-white rounded-lg text-sm font-medium transition-all">Export Audio (MP3)</button>
-                <p className="text-[10px] text-slate-500 mt-2">Note: Exports are processed in-browser using MediaRecorder.</p>
+                <p className="text-[10px] text-slate-500 mt-2">Only WebM export is supported.</p>
               </div>
             </div>
           )}
