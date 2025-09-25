@@ -670,6 +670,112 @@ export function VideoEditor() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  // New: ffmpeg.wasm-based WebM export without real-time recording
+  const exportWebMFFmpeg = async () => {
+    if (!activeFile) return;
+    try {
+      const { loadFFmpeg } = await import('../../lib/ffmpeg');
+      const ffmpeg = await loadFFmpeg();
+
+      // Load input from current active file data URL
+      const srcUrl = activeFile.data as string;
+      const res = await fetch(srcUrl);
+      const inputBlob = await res.blob();
+
+      const inputExt = (activeFile.name?.split('.').pop() || 'mp4').toLowerCase();
+      const inName = `input.${inputExt}`;
+      const outName = 'output.webm';
+
+      const arrayBuffer = await inputBlob.arrayBuffer();
+      await ffmpeg.writeFile(inName, new Uint8Array(arrayBuffer));
+
+      const noEffects =
+        brightness === 100 && contrast === 100 && saturation === 100 && hue === 0 && blur === 0 &&
+        sepia === 0 && grayscale === 0 && invert === 0 && !textOverlay &&
+        cropSettings.x === 0 && cropSettings.y === 0 && cropSettings.width === 100 && cropSettings.height === 100;
+
+      const isWebMSource = (activeFile.type?.includes('webm')) || /\.webm$/i.test(activeFile.name || '');
+
+      const hasTrim = (trimEnd > 0 && trimEnd > trimStart);
+
+      // Build filtergraph if any visual edit (excluding text overlay for now)
+      const filters: string[] = [];
+      if (!(noEffects)) {
+        // crop (percentages -> expressions with iw/ih)
+        if (!(cropSettings.x === 0 && cropSettings.y === 0 && cropSettings.width === 100 && cropSettings.height === 100)) {
+          const fx = (cropSettings.x / 100).toFixed(6);
+          const fy = (cropSettings.y / 100).toFixed(6);
+          const fw = (cropSettings.width / 100).toFixed(6);
+          const fh = (cropSettings.height / 100).toFixed(6);
+          filters.push(`crop=w=iw*${fw}:h=ih*${fh}:x=iw*${fx}:y=ih*${fy}`);
+        }
+        // eq: map CSS-like values to ffmpeg ranges
+        const c = (contrast / 100).toFixed(3); // default 1.0
+        const s = (saturation / 100).toFixed(3); // default 1.0
+        // brightness in ffmpeg is -1..1 (approx). Map 100% -> 0, 0% -> -1, 200% -> +1
+        const b = ((brightness - 100) / 100).toFixed(3);
+        if (!(b === '0.000' && c === '1.000' && s === '1.000')) {
+          filters.push(`eq=brightness=${b}:contrast=${c}:saturation=${s}`);
+        }
+        if (hue !== 0) {
+          filters.push(`hue=h=${hue}`);
+        }
+        if (blur > 0) {
+          // Simple blur approximation
+          const level = Math.min(20, Math.max(1, Math.round(blur)));
+          filters.push(`boxblur=${level}`);
+        }
+        // Note: sepia/grayscale/invert/text overlays are not applied in this ffmpeg path yet
+      }
+
+      const args: string[] = [];
+      if (hasTrim) {
+        args.push('-ss', `${Math.max(0, trimStart).toFixed(3)}`);
+        args.push('-to', `${Math.max(trimStart, trimEnd).toFixed(3)}`);
+      }
+      args.push('-i', inName);
+
+      if (noEffects && isWebMSource) {
+        // Fast path: stream copy for WebM sources
+        args.push('-c', 'copy', '-map', '0', '-avoid_negative_ts', 'make_zero', outName);
+      } else {
+        // Re-encode to VP9/Opus, apply filters if present
+        if (filters.length > 0) {
+          args.push('-vf', filters.join(','));
+        }
+        args.push(
+          '-c:v', 'libvpx-vp9',
+          '-b:v', '4M',
+          '-cpu-used', '4',
+          '-row-mt', '1',
+          '-threads', String((navigator as any).hardwareConcurrency || 4),
+          '-c:a', 'libopus',
+          '-b:a', '160k',
+          outName
+        );
+      }
+
+      await ffmpeg.exec(args);
+
+      const data = await ffmpeg.readFile(outName);
+      try { await ffmpeg.deleteFile(inName); } catch {}
+      try { await ffmpeg.deleteFile(outName); } catch {}
+
+      const blob = new Blob([data as Uint8Array], { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `edited-${activeFile.name?.replace(/\.[^/.]+$/, '') || 'video'}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      // Fallback to existing recorder-based export if ffmpeg fails
+      await exportProcessedVideo();
+    }
+  };
+
   const exportVideo = () => {
     if (!activeFile) return;
     const link = document.createElement('a');
@@ -955,7 +1061,7 @@ export function VideoEditor() {
               </h3>
               <div className="space-y-2">
                 {/* Only allow WebM export */}
-                <button onClick={exportProcessedVideo} className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-sm font-medium transition-all">Export Video (WEBM)</button>
+                <button onClick={exportWebMFFmpeg} className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-sm font-medium transition-all">Export Video (WEBM)</button>
                 <p className="text-[10px] text-slate-500 mt-2">Only WebM export is supported.</p>
               </div>
             </div>
